@@ -9,9 +9,9 @@ yesBtn.addEventListener('click', function () {
     // Ocultamos los botones y el texto para mostrar un mensaje final
     document.querySelector('.contenedor').innerHTML = `
         <div style="text-align: center; color: white; font-family: 'Pacifico', cursive; font-size: 3em;">
-            <p>¡Sabía que dirías que sí! 😉</p>
+            <p>¡Sabía que dirías que sí! </p>
             <p>¡¡TE VEO MAÑANA A LAS 9 AM!!</p>
-            <p style="font-size: 0.5em; margin-top: 20px;">Te quiero mucho ❤️</p>
+            <p style="font-size: 0.5em; margin-top: 20px;">Te quiero mucho, mira lo demas de la cajita ❤️</p>
         </div>
     `;
     // Detenemos la animación de las estrellas para que no distraiga
