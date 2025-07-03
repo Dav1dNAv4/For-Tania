@@ -21,7 +21,7 @@ yesBtn.addEventListener('click', function () {
 // --- Evento para el botón "No" ---
 noBtn.addEventListener('mouseover', function () {
     // Hacemos el botón "Sí" un 5% más grande
-    yesBtnScale += 0.05;
+    yesBtnScale += 0.15;
     yesBtn.style.transform = `translate(-100%, 0) scale(${yesBtnScale})`;
 
     // Movemos el botón "No" a una posición aleatoria en la pantalla
