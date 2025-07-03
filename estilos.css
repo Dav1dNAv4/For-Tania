@@ -51,7 +51,7 @@ body {
 /* Estilo para el texto principal (fuente reducida) */
 p {
     font-family: 'Pacifico', cursive;
-    font-size: 2.2em; /* Tamaño de fuente ligeramente reducido */
+    font-size: 2.0em; /* Tamaño de fuente ligeramente reducido */
     color: white;
     padding: 20px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
