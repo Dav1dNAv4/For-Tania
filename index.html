@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Una Sorpresa Para Ti</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff6b9d;
+            --secondary-color: #753a88;
+            --background-color: #0a081f;
+            --text-color: #fff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body {
+            background-color: var(--background-color);
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); /* Fondo de cielo estrellado sencillo */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: var(--text-color);
+        }
+        .container {
+            width: 95%;
+            max-width: 600px;
+            height: 95vh;
+            max-height: 800px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 107, 157, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        .screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            animation: fadeIn 0.8s ease;
+        }
+        #welcome-screen { display: flex; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        h1 {
+            font-size: clamp(2rem, 8vw, 2.8rem);
+            color: var(--primary-color);
+            text-shadow: 0 0 15px var(--primary-color);
+        }
+        .subtitle {
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            margin: 15px 0 30px 0;
+            color: #f0e6ff;
+            max-width: 90%;
+        }
+        .btn-container { display: flex; gap: 20px; }
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        #yes-btn { background: #4CAF50; color: white; }
+        #no-btn { background: #F44336; color: white; }
+        .no-message {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        /* --- Juego de Vasitos (Shell Game) --- */
+        #shell-game-screen { align-items: center; justify-content: space-around; }
+        #shell-game-container {
+            position: relative;
+            height: 150px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .cup {
+            width: 80px;
+            height: 100px;
+            background: linear-gradient(145deg, #d45c7d, var(--primary-color));
+            border-radius: 40px 40px 5px 5px;
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.4s ease, left 0.5s ease;
+            border-bottom: 5px solid #b14a68;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 2; /* Para que esté por encima de la bellota */
+        }
+        .cup.lifted {
+            transform: translateY(-60px);
+        }
+        .acorn {
+            position: absolute;
+            bottom: 5px; /* Posicionado dentro del área del vaso */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            transition: opacity 0.3s;
+            z-index: 1; /* Detrás del vaso */
+            opacity: 0; /* Oculto por defecto */
+        }
+        /* Regla para mostrar la bellota SOLO cuando el vaso está levantado */
+        .cup.lifted .acorn {
+            opacity: 1;
+        }
+        #shell-game-btn { background: var(--primary-color); color: white; }
+        
+        /* --- Hearts Game --- */
+        #hearts-game { position: relative; width: 100%; flex-grow: 1; overflow: hidden; }
+        .heart {
+            position: absolute; font-size: 2rem; color: var(--primary-color);
+            user-select: none; top: -50px; animation: fall linear;
+        }
+        @keyframes fall { to { top: 110%; } }
+        #basket {
+            position: absolute; bottom: 10px; width: 80px; height: 40px;
+            background: var(--primary-color); border-radius: 50% 50% 0 0;
+            left: 50%; transform: translateX(-50%);
+        }
+
+        /* --- Maze --- */
+        #maze-container {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr); /* Laberinto más grande */
+            width: clamp(280px, 80vw, 420px); height: clamp(280px, 80vw, 420px);
+            border: 2px solid var(--primary-color);
+            touch-action: none; /* Previene el scroll en móvil al arrastrar */
+            cursor: pointer;
+        }
+        .maze-cell { background: #333; }
+        .wall { background: var(--secondary-color); }
+        .player { background: #4CAF50; border-radius: 50%; }
+        .item { color: gold; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .exit { background: #2196F3; }
+        #maze-message { margin-top: 15px; font-weight: bold; }
+
+        /* --- Roulette --- */
+        #roulette-container { position: relative; width: 280px; height: 280px; margin-bottom: 20px; }
+        #roulette-wheel {
+            width: 100%; height: 100%; border-radius: 50%; border: 5px solid white;
+            background: conic-gradient(red, orange, yellow, green, blue, purple, red);
+            transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        #roulette-pointer {
+            position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 15px solid transparent;
+            border-right: 15px solid transparent; border-top: 25px solid white;
+        }
+        #spin-btn { background: var(--primary-color); color: white; padding: 15px 40px; font-size: 1.3rem; }
+
+        /* --- Easter Eggs & Progress --- */
+        .progress-container {
+            position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5);
+            padding: 8px; border-radius: 10px;
+        }
+        .progress-bar { width: 100px; height: 8px; background: #555; border-radius: 5px; overflow: hidden; }
+        #progress-fill { height: 100%; background: var(--primary-color); width: 0%; transition: width 0.5s ease; }
+        #eggs-found { font-size: 0.8rem; margin-top: 3px; }
+
+        .easter-egg { position: absolute; cursor: pointer; z-index: 10; transition: transform 0.2s; }
+        .easter-egg:hover { transform: scale(1.2); }
+        #egg1-heart-red { top: 15%; left: 20px; color: #ff0000; font-size: 2rem; }
+        #egg1-heart-blue { top: 15%; right: 20px; color: #00aaff; font-size: 2rem; }
+        #egg1-drop-zone {
+            position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+            width: 70px; height: 70px; border: 2px dashed #aaa; border-radius: 50%;
+            color: #aaa; display: flex; justify-content: center; align-items: center;
+            font-size: 2rem; transition: all 0.3s;
+        }
+        #egg1-drop-zone.hover { border-color: white; transform: translateX(-50%) scale(1.1); }
+        #egg2-t {
+            position: absolute; bottom: 5px; left: 5px; font-size: 1.5rem;
+            color: rgba(255,255,255,0.1); font-weight: bold;
+        }
+        #egg2-t:hover { color: rgba(255,255,255,1); }
+
+        /* --- Popup --- */
+        #prize-popup {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; justify-content: center;
+            align-items: center; z-index: 1000;
+        }
+        .prize-content {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            padding: 30px; border-radius: 20px; text-align: center;
+            width: 90%; max-width: 400px;
+            transition: opacity 0.4s ease;
+        }
+        .prize-title { font-size: 2.5rem; color: gold; text-shadow: 0 0 10px gold; }
+        .prize-description { font-size: 1.3rem; margin: 15px 0; font-weight: bold; }
+        #prize-poem { font-style: italic; white-space: pre-wrap; margin: 20px 0; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="welcome-screen" class="screen">
+        <h1>Hola mi niña bonita</h1>
+        <p class="subtitle">¿Lista para ver qué hice para ti?</p>
+        <div class="btn-container">
+            <button id="yes-btn" class="btn">Sí</button>
+            <button id="no-btn" class="btn">No</button>
+        </div>
+        <div class="no-message"></div>
+        <div id="egg1-heart-red" class="easter-egg" draggable="true">❤️</div>
+        <div id="egg1-heart-blue" class="easter-egg" draggable="true">💙</div>
+        <div id="egg1-drop-zone"></div>
+    </div>
+
+    <div id="shell-game-screen" class="screen">
+        <h1>Reto #1: ¿Dónde está la bellota?</h1>
+        <p class="subtitle" id="shell-game-subtitle">Memoriza dónde está y adivina cuando terminen de moverse.</p>
+        <div id="shell-game-container"></div>
+        <button id="shell-game-btn" class="btn">Comenzar</button>
+        <div id="egg2-t" class="easter-egg">T</div>
+    </div>
+
+    <div id="hearts-screen" class="screen">
+        <h1>Reto #2: Atrapa los corazones</h1>
+        <p class="subtitle">Atrapa 20 corazones. ¡Tienes 5 vidas!</p>
+        <div id="hearts-game"><div id="basket"></div></div>
+        <div id="hearts-stats">Corazones: 0/20 | Vidas: 5</div>
+        <button id="retry-btn" class="btn" style="display:none; margin-top: 15px; background: orange;">Reintentar</button>
+    </div>
+
+    <div id="maze-screen" class="screen">
+        <h1>Reto #3: Encuentra la salida</h1>
+        <p class="subtitle" id="maze-instruction">Arrastra el punto verde con el mouse o tu dedo.</p>
+        <div id="maze-container"></div>
+        <div id="maze-message"></div>
+    </div>
+    
+    <div id="roulette-screen" class="screen">
+        <h1>¡Felicidades!</h1>
+        <p class="subtitle">Gira la ruleta para descubrir tu premio.</p>
+        <div id="roulette-container">
+            <div id="roulette-wheel"></div>
+            <div id="roulette-pointer"></div>
+        </div>
+        <button id="spin-btn" class="btn">Girar</button>
+        <p id="final-message" style="margin-top: 20px; font-size: 0.9rem; opacity: 0.7;">Puedes volver a intentarlo y descubrir todos los premios que tengo para ti ❤️</p>
+    </div>
+    
+    <div class="progress-container">
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <div id="eggs-found">Secretos: 0/3</div>
+    </div>
+</div>
+
+<div id="prize-popup">
+    <div class="prize-content">
+        <h2 class="prize-title"></h2>
+        <p class="prize-description"></p>
+        <div id="prize-poem" style="display:none;"></div>
+        <button id="prize-btn" class="btn" style="background: white; color: black;">Cerrar</button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+// --- CONFIGURACIÓN PERSONALIZABLE ---
+const lovePoem = `En tus ojos encuentro el cielo,\nTe quería dar algo bonito. \nTe extraño en todo momento.\nQuiero ya estar contigo mi niña, mi todo`;
+const noMessages = ["¡Hey, no toques ese botón!", "¡Qué mala eres!", "Ese no es el botón correcto...", "¡Intenta con el otro!", "¿No quieres saber lo que preparé?", "¡Vamos, dale al Sí!", "Te voy a perseguir hasta que le des al Sí"];
+// --- FIN DE LA CONFIGURACIÓN ---
+
+const gameState = {
+    eggsFound: { egg1: false, egg2: false, egg3: false },
+    totalEggs: 3,
+    hasPoem: false,
+    prizes: [
+        { name: "Común", probability: 40, prize: "Vale por 5 Abrazos de Oso" },
+        { name: "Raro", probability: 30, prize: "Vale por 30 min de Masajes" },
+        { name: "Ultra Raro", probability: 15, prize: "Un Almuerzo romantico Hecho por Mí" },
+        { name: "Legendario", probability: 10, prize: "Un Pie de Limon" },
+        { name: "Mítico", probability: 5, prize: "La Luna" }
+    ],
+    prizesEnhanced: [
+        { name: "Común", probability: 15, prize: "Vale por 10 Abrazos de Oso" },
+        { name: "Raro", probability: 25, prize: "Vale por 45 min de Masajes" },
+        { name: "Ultra Raro", probability: 25, prize: "Un Almuerzo romantico por Mí" },
+        { name: "Legendario", probability: 20, prize: "Un Pie de Limon" },
+        { name: "Mítico", probability: 15, prize: "La Luna" }
+    ]
+};
+const screens = { welcome: document.getElementById('welcome-screen'), shell: document.getElementById('shell-game-screen'), hearts: document.getElementById('hearts-screen'), maze: document.getElementById('maze-screen'), roulette: document.getElementById('roulette-screen') };
+const yesBtn = document.getElementById('yes-btn');
+const noBtn = document.getElementById('no-btn');
+const noMessage = document.querySelector('.no-message');
+const prizePopup = document.getElementById('prize-popup');
+const prizeBtn = document.getElementById('prize-btn');
+
+const showScreen = (screenName) => {
+    Object.values(screens).forEach(s => s.style.display = 'none');
+    screens[screenName].style.display = 'flex';
+    if(screenName === 'shell') initShellGame();
+    if(screenName === 'hearts') startHeartsGame();
+    if(screenName === 'maze') initMaze();
+};
+const updateEggsProgress = () => {
+    const foundCount = Object.values(gameState.eggsFound).filter(Boolean).length;
+    document.getElementById('progress-fill').style.width = `${(foundCount / gameState.totalEggs) * 100}%`;
+    document.getElementById('eggs-found').textContent = `Secretos: ${foundCount}/${gameState.totalEggs}`;
+};
+yesBtn.addEventListener('click', () => {
+    noMessage.textContent = "¡Muy bien, sabía que elegirías este!";
+    noMessage.style.opacity = 1;
+    noMessage.style.background = 'rgba(76, 175, 80, 0.7)';
+    setTimeout(() => showScreen('shell'), 2000);
+});
+noBtn.addEventListener('mouseover', moveNoButton);
+noBtn.addEventListener('click', moveNoButton);
+function moveNoButton() {
+    const containerRect = document.querySelector('.container').getBoundingClientRect();
+    const btnRect = noBtn.getBoundingClientRect();
+    noBtn.style.position = 'absolute';
+    noBtn.style.top = `${Math.random() * (containerRect.height - btnRect.height)}px`;
+    noBtn.style.left = `${Math.random() * (containerRect.width - btnRect.width)}px`;
+    noMessage.textContent = noMessages[Math.floor(Math.random() * noMessages.length)];
+    noMessage.style.background = 'rgba(244, 67, 54, 0.7)';
+    noMessage.style.opacity = 1;
+    setTimeout(() => noMessage.style.opacity = 0, 2000);
+}
+const heartRed = document.getElementById('egg1-heart-red');
+const heartBlue = document.getElementById('egg1-heart-blue');
+const dropZone = document.getElementById('egg1-drop-zone');
+let heartsInZone = { red: false, blue: false };
+[heartRed, heartBlue].forEach(heart => {
+    heart.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', heart.id));
+});
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('hover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('hover');
+    const id = e.dataTransfer.getData('text');
+    const droppedHeart = document.getElementById(id);
+    if (droppedHeart) {
+        droppedHeart.style.display = 'none';
+        if (id === 'egg1-heart-red') heartsInZone.red = true;
+        if (id === 'egg1-heart-blue') heartsInZone.blue = true;
+    }
+    let content = '';
+    if (heartsInZone.red) content += '❤️';
+    if (heartsInZone.blue) content += '💙';
+    dropZone.innerHTML = content;
+    if (heartsInZone.red && heartsInZone.blue && !gameState.eggsFound.egg1) {
+        gameState.eggsFound.egg1 = true;
+        updateEggsProgress();
+        dropZone.style.borderColor = '#4CAF50';
+    }
+});
+document.getElementById('egg2-t').addEventListener('click', () => {
+    if (!gameState.eggsFound.egg2) {
+        gameState.eggsFound.egg2 = true;
+        updateEggsProgress();
+        document.getElementById('egg2-t').style.color = 'gold';
+        alert('¡Secreto #2 encontrado!');
+    }
+});
+// --- Juego de Vasitos ---
+const shellContainer = document.getElementById('shell-game-container');
+const shellBtn = document.getElementById('shell-game-btn');
+const shellSubtitle = document.getElementById('shell-game-subtitle');
+let cupElements = [];
+let acornPosition = 0;
+let isShuffling = false;
+
+function initShellGame() {
+    shellBtn.textContent = 'Comenzar';
+    shellSubtitle.textContent = 'Memoriza dónde está y adivina cuando terminen de moverse.';
+    shellBtn.style.display = 'block';
+    shellBtn.onclick = startGame;
+    shellContainer.innerHTML = '';
+    cupElements = [];
+    isShuffling = false;
+    
+    for (let i = 0; i < 3; i++) {
+        const cup = document.createElement('div');
+        cup.classList.add('cup');
+        cup.dataset.id = i;
+        cup.style.left = `calc(50% + ${(i - 1) * 100}px - 40px)`;
+        cup.addEventListener('click', handleCupClick);
+        shellContainer.appendChild(cup);
+        cupElements.push(cup);
+    }
+    acornPosition = Math.floor(Math.random() * 3);
+    const acorn = document.createElement('span');
+    acorn.classList.add('acorn');
+    acorn.textContent = '🌰';
+    cupElements[acornPosition].appendChild(acorn);
+}
+
+async function startGame() {
+    shellBtn.style.display = 'none';
+    isShuffling = true;
+
+    const correctCup = cupElements[acornPosition];
+    
+    // Levantar el vaso para mostrar la bellota
+    correctCup.classList.add('lifted');
+    await sleep(1500);
+    correctCup.classList.remove('lifted');
+    await sleep(500);
+    
+    shellSubtitle.textContent = '¡Mucha atención!';
+
+    for (let i = 0; i < 5; i++) {
+        const cup1Index = Math.floor(Math.random() * 3);
+        let cup2Index = Math.floor(Math.random() * 3);
+        while (cup1Index === cup2Index) {
+            cup2Index = Math.floor(Math.random() * 3);
+        }
+        await swapCups(cup1Index, cup2Index);
+        await sleep(100);
+    }
+    
+    shellSubtitle.textContent = '¿Dónde quedó la bellota?';
+    isShuffling = false;
+}
+
+function handleCupClick(e) {
+    if (isShuffling) return;
+    isShuffling = true; 
+
+    const clickedCup = e.currentTarget;
+    const guess = parseInt(clickedCup.dataset.id);
+    
+    cupElements.forEach(cup => cup.classList.add('lifted'));
+
+    if (guess === acornPosition) {
+        shellSubtitle.textContent = '¡Correcto! Eres increíble.';
+        setTimeout(() => showScreen('hearts'), 2500);
+    } else {
+        shellSubtitle.textContent = '¡Oh no! Inténtalo de nuevo.';
+        clickedCup.style.backgroundColor = '#F44336';
+        shellBtn.textContent = 'Jugar otra vez';
+        shellBtn.style.display = 'block';
+        shellBtn.onclick = initShellGame;
+    }
+}
+
+function swapCups(i, j) {
+    const cup1 = cupElements.find(c => parseInt(c.dataset.id) === i);
+    const cup2 = cupElements.find(c => parseInt(c.dataset.id) === j);
+    
+    const pos1 = cup1.style.left;
+    const pos2 = cup2.style.left;
+    
+    cup1.style.left = pos2;
+    cup2.style.left = pos1;
+
+    return sleep(500);
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// --- Reto 2: Corazones ---
+const heartsGame = document.getElementById('hearts-game');
+const basket = document.getElementById('basket');
+const heartsStats = document.getElementById('hearts-stats');
+const retryBtn = document.getElementById('retry-btn');
+let heartsState;
+
+function startHeartsGame() {
+    heartsState = { caught: 0, missed: 0, interval: null, speed: 3, lives: 5 };
+    retryBtn.style.display = 'none';
+    document.querySelectorAll('.heart').forEach(h => h.remove());
+    updateHeartsStats();
+
+    heartsGame.addEventListener('mousemove', moveBasket);
+    heartsGame.addEventListener('touchmove', (e) => { e.preventDefault(); moveBasket(e); });
+
+    heartsState.interval = setInterval(createHeart, 800);
+}
+function moveBasket(e) {
+    const gameRect = heartsGame.getBoundingClientRect();
+    const clientX = e.clientX || e.touches[0].clientX;
+    let x = clientX - gameRect.left - (basket.offsetWidth / 2);
+    x = Math.max(0, Math.min(x, gameRect.width - basket.offsetWidth));
+    basket.style.left = `${x}px`;
+}
+function createHeart() {
+    const heart = document.createElement('div');
+    heart.classList.add('heart');
+    heart.innerHTML = '❤️';
+    heart.style.left = `${Math.random() * (heartsGame.offsetWidth - 30)}px`;
+    heart.style.animationDuration = `${Math.random() * 2 + (5 - heartsState.speed)}s`;
+    heartsGame.appendChild(heart);
+    
+    const animEndHandler = () => {
+        heart.removeEventListener('animationend', animEndHandler);
+        if (heart.parentElement === heartsGame) {
+             heartsState.missed++;
+             heartsState.lives--;
+             updateHeartsStats();
+             heart.remove();
+             checkHeartsGameOver();
+        }
+    };
+    heart.addEventListener('animationend', animEndHandler);
+
+    const checkInterval = setInterval(() => {
+        if (!heart.parentElement) {
+            clearInterval(checkInterval);
+            return;
+        }
+        const heartRect = heart.getBoundingClientRect();
+        const basketRect = basket.getBoundingClientRect();
+        if (heartRect.bottom > basketRect.top && heartRect.top < basketRect.bottom &&
+            heartRect.left < basketRect.right && heartRect.right > basketRect.left) {
+            heartsState.caught++;
+            updateHeartsStats();
+            heart.remove();
+            clearInterval(checkInterval);
+            if(heartsState.caught >= 20) endGame(true);
+        }
+    }, 50);
+}
+function updateHeartsStats() {
+    heartsStats.textContent = `Corazones: ${heartsState.caught}/20 | Vidas: ${heartsState.lives}`;
+}
+function checkHeartsGameOver() {
+    if (heartsState.lives <= 0) {
+        endGame(false);
+    }
+}
+function endGame(isWin) {
+    clearInterval(heartsState.interval);
+    document.querySelectorAll('.heart').forEach(h => h.remove());
+    heartsGame.removeEventListener('mousemove', moveBasket);
+    heartsGame.removeEventListener('touchmove', moveBasket);
+    if(isWin) {
+        heartsStats.textContent = '¡Lo lograste!';
+        setTimeout(() => showScreen('maze'), 2000);
+    } else {
+        heartsStats.textContent = '¡Se acabaron las vidas!';
+        retryBtn.style.display = 'block';
+    }
+}
+retryBtn.addEventListener('click', startHeartsGame);
+
+// --- Reto 3: Laberinto (CON CONTROL DE MOUSE Y TÁCTIL) ---
+const mazeContainer = document.getElementById('maze-container');
+const mazeMessage = document.getElementById('maze-message');
+const mazeMap = [
+    [1,0,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,1,0,0,0,0,0,1],
+    [1,1,1,1,0,1,0,1,1,1,0,1],
+    [1,0,0,0,0,0,0,1,2,1,0,1],
+    [1,0,1,1,1,1,1,1,0,1,0,1],
+    [1,0,0,0,0,0,1,0,0,0,0,1],
+    [1,1,1,1,1,0,1,0,1,1,1,1],
+    [1,0,0,0,1,0,1,0,0,0,0,1],
+    [1,0,1,0,1,0,0,1,1,1,0,1],
+    [1,0,1,0,1,1,0,0,0,1,0,1],
+    [1,0,1,0,0,0,0,1,0,0,0,3],
+    [1,1,1,1,1,1,1,1,1,1,1,1]
+];
+let playerPos = { x: 1, y: 0 };
+let dragStart = { x: 0, y: 0 };
+let isDragging = false;
+let mazeControlActive = false;
+
+function initMaze() {
+    gameState.hasPoem = false;
+    playerPos = { x: 1, y: 0 };
+    renderMaze();
+    mazeMessage.textContent = 'Arrastra el punto verde con el mouse o tu dedo.';
+    
+    if(!mazeControlActive) {
+        // Asignar eventos para TÁCTIL
+        mazeContainer.addEventListener('touchstart', handleDragStart, { passive: false });
+        mazeContainer.addEventListener('touchmove', handleDragMove, { passive: false });
+        mazeContainer.addEventListener('touchend', handleDragEnd);
+        
+        // Asignar eventos para MOUSE
+        mazeContainer.addEventListener('mousedown', handleDragStart, { passive: false });
+        mazeContainer.addEventListener('mousemove', handleDragMove, { passive: false });
+        window.addEventListener('mouseup', handleDragEnd); // En window para capturar si suelta fuera
+        mazeContainer.addEventListener('mouseleave', handleDragEnd); // Si el mouse sale del contenedor
+
+        mazeControlActive = true;
+    }
+}
+
+function renderMaze() {
+    mazeContainer.innerHTML = '';
+    mazeMap.forEach((row, y) => {
+        row.forEach((cell, x) => {
+            const cellDiv = document.createElement('div');
+            cellDiv.classList.add('maze-cell');
+            if(cell === 1) cellDiv.classList.add('wall');
+            if(cell === 2) cellDiv.innerHTML = '<i class="fas fa-scroll item"></i>';
+            if(cell === 3) cellDiv.classList.add('exit');
+            if(x === playerPos.x && y === playerPos.y) cellDiv.classList.add('player');
+            mazeContainer.appendChild(cellDiv);
+        });
+    });
+}
+
+function handleDragStart(e) {
+    e.preventDefault();
+    isDragging = true;
+    if (e.type === 'touchstart') {
+        dragStart.x = e.touches[0].clientX;
+        dragStart.y = e.touches[0].clientY;
+    } else { // mousedown
+        dragStart.x = e.clientX;
+        dragStart.y = e.clientY;
+    }
+}
+
+function handleDragMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    let currentX, currentY;
+    if (e.type === 'touchmove') {
+        currentX = e.touches[0].clientX;
+        currentY = e.touches[0].clientY;
+    } else { // mousemove
+        currentX = e.clientX;
+        currentY = e.clientY;
+    }
+
+    let dx = currentX - dragStart.x;
+    let dy = currentY - dragStart.y;
+    let threshold = 30; // Mínima distancia de arrastre para registrar un movimiento
+
+    let key = '';
+    if (Math.abs(dx) > Math.abs(dy)) {
+        if (Math.abs(dx) > threshold) key = dx > 0 ? 'ArrowRight' : 'ArrowLeft';
+    } else {
+        if (Math.abs(dy) > threshold) key = dy > 0 ? 'ArrowDown' : 'ArrowUp';
+    }
+
+    if(key) {
+        movePlayer(key);
+        // Reiniciar la posición de inicio para el siguiente movimiento
+        dragStart.x = currentX;
+        dragStart.y = currentY;
+    }
+}
+
+function handleDragEnd(e) {
+    isDragging = false;
+}
+
+function movePlayer(key) {
+    let newX = playerPos.x; let newY = playerPos.y;
+    if (key === 'ArrowUp') newY--; if (key === 'ArrowDown') newY++;
+    if (key === 'ArrowLeft') newX--; if (key === 'ArrowRight') newX++;
+    
+    if(mazeMap[newY] && mazeMap[newY][newX] !== undefined && mazeMap[newY][newX] !== 1) {
+        playerPos = { x: newX, y: newY };
+        const cellValue = mazeMap[newY][newX];
+        
+        if(cellValue === 2) {
+            gameState.hasPoem = true; 
+            mazeMap[newY][newX] = 0;
+            mazeMessage.textContent = '¡Encontraste algo! Llévalo a la salida.';
+            if (!gameState.eggsFound.egg3) { gameState.eggsFound.egg3 = true; updateEggsProgress(); }
+        }
+        if(cellValue === 3) {
+            // Desactivar controles para no mover más
+            isDragging = false; 
+
+            mazeMessage.textContent = gameState.hasPoem ? '¡Felicidades! Llegaste a la salida.' : '¡Bien hecho! Llegaste a la salida.';
+            setTimeout(() => showScreen('roulette'), 2500);
+        }
+        renderMaze();
+    }
+}
+
+// --- Ruleta y Premio ---
+const rouletteWheel = document.getElementById('roulette-wheel');
+document.getElementById('spin-btn').addEventListener('click', () => {
+    const prizesToUse = Object.values(gameState.eggsFound).every(Boolean) ? gameState.prizesEnhanced : gameState.prizes;
+    const rand = Math.random() * 100;
+    let cumulative = 0;
+    const chosenPrize = prizesToUse.find(p => {
+        cumulative += p.probability;
+        return rand < cumulative;
+    });
+
+    const baseRotation = 360 * 5;
+    const prizeIndex = prizesToUse.findIndex(p => p.name === chosenPrize.name);
+    const prizeAngle = 360 / prizesToUse.length;
+    const targetRotation = 360 - (prizeIndex * prizeAngle + prizeAngle / 2);
+    
+    rouletteWheel.style.transform = `rotate(${baseRotation + targetRotation}deg)`;
+    
+    setTimeout(() => {
+        setupPrizePopup(chosenPrize);
+        prizePopup.style.display = 'flex';
+    }, 5500);
+});
+
+function setupPrizePopup(prize) {
+    const prizeContent = prizePopup.querySelector('.prize-content');
+    const prizeTitle = prizePopup.querySelector('.prize-title');
+    const prizeDescription = prizePopup.querySelector('.prize-description');
+    const prizePoemDiv = prizePopup.querySelector('#prize-poem');
+
+    // Estado inicial: mostrar el premio
+    prizeContent.style.opacity = 1;
+    prizeTitle.textContent = `¡Premio ${prize.name}!`;
+    prizeDescription.textContent = prize.prize;
+    prizeDescription.style.display = 'block';
+    prizePoemDiv.style.display = 'none';
+
+    if (gameState.hasPoem) {
+        prizeBtn.textContent = 'Ver Bonus ✨';
+        prizeBtn.onclick = () => {
+            prizeContent.style.opacity = 0;
+            setTimeout(() => {
+                prizeTitle.textContent = 'Un Mensajito Para Ti';
+                prizeDescription.style.display = 'none';
+                prizePoemDiv.style.display = 'block';
+                prizePoemDiv.textContent = lovePoem;
+                prizeBtn.textContent = 'Cerrar';
+                prizeContent.style.opacity = 1;
+                prizeBtn.onclick = () => prizePopup.style.display = 'none';
+            }, 400);
+        };
+    } else {
+        prizeBtn.textContent = 'Cerrar';
+        prizeBtn.onclick = () => prizePopup.style.display = 'none';
+    }
+}
+
+updateEggsProgress();
+});
+</script>
+</body>
+</html>
